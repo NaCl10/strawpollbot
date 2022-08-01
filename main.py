@@ -5,6 +5,7 @@ from os import path
 from discord.ext import commands    
 import discord
 from string import Template
+import strawpoll
 
 # Read config    
 config = configparser.ConfigParser()    
@@ -21,10 +22,11 @@ async def get_prefix(bot, message):
     guild = str(message.guild.id)    
     if guild in config['prefixes']:    
         return config['prefixes'][guild]    
-    else:    
+    else:
         return '%'
 
 client = commands.Bot(command_prefix=get_prefix, help_command=None)
+polls = strawpoll.API()
 
 @client.event
 async def on_ready():
@@ -60,6 +62,17 @@ async def prefix(ctx, prefix):
     response = Template('Prefix changed to $prefix')
     await ctx.send(response.substitute(prefix=prefix))
 
-#strawpoll command is gonna go here
+@client.command(pass_context = True)
+async def createpoll(ctx, *, args):
+    args_list = args.split("|")
+    print(args_list)
+    options = args_list.copy()
+    del options[0]
+    print(options)
+    spoll = strawpoll.Poll(args_list[0], options)
+    print(args_list[0])
+    print(spoll.options)
+    spoll = await polls.submit_poll(spoll)
+    print(spoll.url)
 
 client.run(config['config']['token'])
